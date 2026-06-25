@@ -93,17 +93,3 @@ To create the NuGet package locally:
 ```bash
 dotnet pack src/ExplicitMidpointRoundingAnalyzer/ExplicitMidpointRoundingAnalyzer.csproj -c Release -o artifacts
 ```
-
-## GitHub Actions
-
-`.github/workflows/build.yml` runs on pull requests, on pushes to `master`, and
-manually via `workflow_dispatch`. The workflow:
-
-- restores dependencies
-- builds the solution
-- runs the test suite
-- creates a `.nupkg`
-- uploads the package as a GitHub Actions artifact named `nuget-package`
-
-That keeps CI responsible for producing a package, while publishing to NuGet can
-still happen manually when you are ready.
