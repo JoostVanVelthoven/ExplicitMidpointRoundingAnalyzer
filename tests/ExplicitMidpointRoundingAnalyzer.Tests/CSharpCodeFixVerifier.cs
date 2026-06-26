@@ -30,13 +30,18 @@ internal static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         return test.RunAsync(CancellationToken.None);
     }
 
-    public static Task VerifyCodeFixAsync(string source, DiagnosticResult expected, string fixedSource)
+    public static Task VerifyCodeFixAsync(string source, DiagnosticResult expected, string fixedSource, int? codeActionIndex = null)
     {
         var test = new Test
         {
             TestCode = source,
             FixedCode = fixedSource,
         };
+
+        if (codeActionIndex is int selectedCodeActionIndex)
+        {
+            test.CodeActionIndex = selectedCodeActionIndex;
+        }
 
         test.ExpectedDiagnostics.Add(expected);
         return test.RunAsync(CancellationToken.None);

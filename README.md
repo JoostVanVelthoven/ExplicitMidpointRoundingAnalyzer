@@ -72,11 +72,14 @@ var invoiceLineTotal = Math.Round(quantity * unitPrice, 2, MidpointRounding.ToEv
 
 ## Code fix
 
-The code fix adds `MidpointRounding.AwayFromZero` as the explicit rounding mode:
+The code fix offers both explicit rounding modes:
 
 ```csharp
 Math.Round(value);
-// becomes
+// option 1
+Math.Round(value, MidpointRounding.ToEven);
+
+// option 2
 Math.Round(value, MidpointRounding.AwayFromZero);
 ```
 

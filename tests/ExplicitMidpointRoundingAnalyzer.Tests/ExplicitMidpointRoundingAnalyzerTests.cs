@@ -11,6 +11,36 @@ using Verify = CSharpCodeFixVerifier<
 public sealed class ExplicitMidpointRoundingAnalyzerTests
 {
     [Fact]
+    public async Task MathRoundValueReportsDiagnosticAndAddsToEven()
+    {
+        const string test = """
+            using System;
+
+            class C
+            {
+                double M(double value)
+                {
+                    return {|#0:Math.Round(value)|};
+                }
+            }
+            """;
+
+        const string fixedCode = """
+            using System;
+
+            class C
+            {
+                double M(double value)
+                {
+                    return Math.Round(value, MidpointRounding.ToEven);
+                }
+            }
+            """;
+
+        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("Math"), fixedCode, codeActionIndex: 0);
+    }
+
+    [Fact]
     public async Task MathRoundValueReportsDiagnosticAndAddsAwayFromZero()
     {
         const string test = """
@@ -37,7 +67,37 @@ public sealed class ExplicitMidpointRoundingAnalyzerTests
             }
             """;
 
-        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("Math"), fixedCode);
+        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("Math"), fixedCode, codeActionIndex: 1);
+    }
+
+    [Fact]
+    public async Task MathRoundValueAndDigitsReportsDiagnosticAndAddsToEven()
+    {
+        const string test = """
+            using System;
+
+            class C
+            {
+                double M(double value)
+                {
+                    return {|#0:Math.Round(value, 2)|};
+                }
+            }
+            """;
+
+        const string fixedCode = """
+            using System;
+
+            class C
+            {
+                double M(double value)
+                {
+                    return Math.Round(value, 2, MidpointRounding.ToEven);
+                }
+            }
+            """;
+
+        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("Math"), fixedCode, codeActionIndex: 0);
     }
 
     [Fact]
@@ -67,11 +127,11 @@ public sealed class ExplicitMidpointRoundingAnalyzerTests
             }
             """;
 
-        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("Math"), fixedCode);
+        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("Math"), fixedCode, codeActionIndex: 1);
     }
 
     [Fact]
-    public async Task DecimalMathRoundReportsDiagnostic()
+    public async Task DecimalMathRoundValueReportsDiagnosticAndAddsToEven()
     {
         const string test = """
             using System;
@@ -85,11 +145,113 @@ public sealed class ExplicitMidpointRoundingAnalyzerTests
             }
             """;
 
-        await Verify.VerifyAnalyzerAsync(test, Diagnostic().WithLocation(0).WithArguments("Math"));
+        const string fixedCode = """
+            using System;
+
+            class C
+            {
+                decimal M(decimal value)
+                {
+                    return Math.Round(value, MidpointRounding.ToEven);
+                }
+            }
+            """;
+
+        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("Math"), fixedCode, codeActionIndex: 0);
     }
 
     [Fact]
-    public async Task MathFRoundReportsDiagnostic()
+    public async Task DecimalMathRoundValueReportsDiagnosticAndAddsAwayFromZero()
+    {
+        const string test = """
+            using System;
+
+            class C
+            {
+                decimal M(decimal value)
+                {
+                    return {|#0:Math.Round(value)|};
+                }
+            }
+            """;
+
+        const string fixedCode = """
+            using System;
+
+            class C
+            {
+                decimal M(decimal value)
+                {
+                    return Math.Round(value, MidpointRounding.AwayFromZero);
+                }
+            }
+            """;
+
+        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("Math"), fixedCode, codeActionIndex: 1);
+    }
+
+    [Fact]
+    public async Task DecimalMathRoundValueAndDigitsReportsDiagnosticAndAddsToEven()
+    {
+        const string test = """
+            using System;
+
+            class C
+            {
+                decimal M(decimal value)
+                {
+                    return {|#0:Math.Round(value, 2)|};
+                }
+            }
+            """;
+
+        const string fixedCode = """
+            using System;
+
+            class C
+            {
+                decimal M(decimal value)
+                {
+                    return Math.Round(value, 2, MidpointRounding.ToEven);
+                }
+            }
+            """;
+
+        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("Math"), fixedCode, codeActionIndex: 0);
+    }
+
+    [Fact]
+    public async Task DecimalMathRoundValueAndDigitsReportsDiagnosticAndAddsAwayFromZero()
+    {
+        const string test = """
+            using System;
+
+            class C
+            {
+                decimal M(decimal value)
+                {
+                    return {|#0:Math.Round(value, 2)|};
+                }
+            }
+            """;
+
+        const string fixedCode = """
+            using System;
+
+            class C
+            {
+                decimal M(decimal value)
+                {
+                    return Math.Round(value, 2, MidpointRounding.AwayFromZero);
+                }
+            }
+            """;
+
+        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("Math"), fixedCode, codeActionIndex: 1);
+    }
+
+    [Fact]
+    public async Task MathFRoundValueReportsDiagnosticAndAddsToEven()
     {
         const string test = """
             using System;
@@ -103,7 +265,109 @@ public sealed class ExplicitMidpointRoundingAnalyzerTests
             }
             """;
 
-        await Verify.VerifyAnalyzerAsync(test, Diagnostic().WithLocation(0).WithArguments("MathF"));
+        const string fixedCode = """
+            using System;
+
+            class C
+            {
+                float M(float value)
+                {
+                    return MathF.Round(value, MidpointRounding.ToEven);
+                }
+            }
+            """;
+
+        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("MathF"), fixedCode, codeActionIndex: 0);
+    }
+
+    [Fact]
+    public async Task MathFRoundValueReportsDiagnosticAndAddsAwayFromZero()
+    {
+        const string test = """
+            using System;
+
+            class C
+            {
+                float M(float value)
+                {
+                    return {|#0:MathF.Round(value)|};
+                }
+            }
+            """;
+
+        const string fixedCode = """
+            using System;
+
+            class C
+            {
+                float M(float value)
+                {
+                    return MathF.Round(value, MidpointRounding.AwayFromZero);
+                }
+            }
+            """;
+
+        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("MathF"), fixedCode, codeActionIndex: 1);
+    }
+
+    [Fact]
+    public async Task MathFRoundValueAndDigitsReportsDiagnosticAndAddsToEven()
+    {
+        const string test = """
+            using System;
+
+            class C
+            {
+                float M(float value)
+                {
+                    return {|#0:MathF.Round(value, 2)|};
+                }
+            }
+            """;
+
+        const string fixedCode = """
+            using System;
+
+            class C
+            {
+                float M(float value)
+                {
+                    return MathF.Round(value, 2, MidpointRounding.ToEven);
+                }
+            }
+            """;
+
+        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("MathF"), fixedCode, codeActionIndex: 0);
+    }
+
+    [Fact]
+    public async Task MathFRoundValueAndDigitsReportsDiagnosticAndAddsAwayFromZero()
+    {
+        const string test = """
+            using System;
+
+            class C
+            {
+                float M(float value)
+                {
+                    return {|#0:MathF.Round(value, 2)|};
+                }
+            }
+            """;
+
+        const string fixedCode = """
+            using System;
+
+            class C
+            {
+                float M(float value)
+                {
+                    return MathF.Round(value, 2, MidpointRounding.AwayFromZero);
+                }
+            }
+            """;
+
+        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("MathF"), fixedCode, codeActionIndex: 1);
     }
 
     [Fact]
@@ -118,9 +382,11 @@ public sealed class ExplicitMidpointRoundingAnalyzerTests
                 {
                     var toEven = Math.Round(value, MidpointRounding.ToEven);
                     var awayFromZero = Math.Round(value, 2, MidpointRounding.AwayFromZero);
+                    var decimalToEven = Math.Round((decimal)value, MidpointRounding.ToEven);
+                    var decimalAwayFromZero = Math.Round((decimal)value, 2, MidpointRounding.AwayFromZero);
                     var mathFToEven = MathF.Round((float)value, MidpointRounding.ToEven);
                     var mathFAwayFromZero = MathF.Round((float)value, 2, MidpointRounding.AwayFromZero);
-                    return toEven + awayFromZero + mathFToEven + mathFAwayFromZero;
+                    return toEven + awayFromZero + (double)decimalToEven + (double)decimalAwayFromZero + mathFToEven + mathFAwayFromZero;
                 }
             }
             """;

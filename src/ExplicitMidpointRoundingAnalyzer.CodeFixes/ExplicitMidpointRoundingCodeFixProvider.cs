@@ -17,7 +17,8 @@ namespace ExplicitMidpointRoundingAnalyzer;
 [Shared]
 public sealed class ExplicitMidpointRoundingCodeFixProvider : CodeFixProvider
 {
-    private const string Title = "Specify MidpointRounding.AwayFromZero";
+    private const string ToEvenTitle = "Specify MidpointRounding.ToEven";
+    private const string AwayFromZeroTitle = "Specify MidpointRounding.AwayFromZero";
 
     public override ImmutableArray<string> FixableDiagnosticIds =>
         ImmutableArray.Create(ExplicitMidpointRoundingAnalyzer.DiagnosticId);
@@ -36,11 +37,24 @@ public sealed class ExplicitMidpointRoundingCodeFixProvider : CodeFixProvider
         }
 
         context.RegisterCodeFix(
-            CodeAction.Create(
-                Title,
-                cancellationToken => AddMidpointRoundingArgumentAsync(context.Document, invocation, cancellationToken),
-                equivalenceKey: Title),
+            CreateCodeAction(context.Document, invocation, ToEvenTitle, "ToEven"),
             diagnostic);
+
+        context.RegisterCodeFix(
+            CreateCodeAction(context.Document, invocation, AwayFromZeroTitle, "AwayFromZero"),
+            diagnostic);
+    }
+
+    private static CodeAction CreateCodeAction(
+        Document document,
+        InvocationExpressionSyntax invocation,
+        string title,
+        string roundingModeName)
+    {
+        return CodeAction.Create(
+            title,
+            cancellationToken => AddMidpointRoundingArgumentAsync(document, invocation, roundingModeName, cancellationToken),
+            equivalenceKey: title);
     }
 
     private static InvocationExpressionSyntax? FindInvocation(SyntaxNode? root, TextSpan sourceSpan)
@@ -52,6 +66,7 @@ public sealed class ExplicitMidpointRoundingCodeFixProvider : CodeFixProvider
     private static async Task<Document> AddMidpointRoundingArgumentAsync(
         Document document,
         InvocationExpressionSyntax invocation,
+        string roundingModeName,
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -63,7 +78,7 @@ public sealed class ExplicitMidpointRoundingCodeFixProvider : CodeFixProvider
         }
 
         var midpointRoundingTypeName = GetMidpointRoundingTypeName(semanticModel, invocation);
-        var argument = SyntaxFactory.Argument(SyntaxFactory.ParseExpression($"{midpointRoundingTypeName}.AwayFromZero"))
+        var argument = SyntaxFactory.Argument(SyntaxFactory.ParseExpression($"{midpointRoundingTypeName}.{roundingModeName}"))
             .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
         var newArgumentList = invocation.ArgumentList.AddArguments(argument);
         var newInvocation = invocation.WithArgumentList(newArgumentList);
