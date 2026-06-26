@@ -46,6 +46,9 @@ MathF.Round(floatValue);
 System.Math.Round(value, 2);
 ```
 
+
+![Example image](example.png)
+
 Calls that already specify a rounding mode are ignored:
 
 ```csharp
