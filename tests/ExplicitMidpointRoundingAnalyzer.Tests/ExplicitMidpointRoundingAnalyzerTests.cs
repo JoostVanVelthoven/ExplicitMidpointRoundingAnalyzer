@@ -251,6 +251,126 @@ public sealed class ExplicitMidpointRoundingAnalyzerTests
     }
 
     [Fact]
+    public async Task DecimalRoundValueReportsDiagnosticAndAddsToEven()
+    {
+        const string test = """
+            using System;
+
+            class C
+            {
+                decimal M(decimal value)
+                {
+                    return {|#0:decimal.Round(value)|};
+                }
+            }
+            """;
+
+        const string fixedCode = """
+            using System;
+
+            class C
+            {
+                decimal M(decimal value)
+                {
+                    return decimal.Round(value, MidpointRounding.ToEven);
+                }
+            }
+            """;
+
+        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("Decimal"), fixedCode, codeActionIndex: 0);
+    }
+
+    [Fact]
+    public async Task DecimalRoundValueReportsDiagnosticAndAddsAwayFromZero()
+    {
+        const string test = """
+            using System;
+
+            class C
+            {
+                decimal M(decimal value)
+                {
+                    return {|#0:decimal.Round(value)|};
+                }
+            }
+            """;
+
+        const string fixedCode = """
+            using System;
+
+            class C
+            {
+                decimal M(decimal value)
+                {
+                    return decimal.Round(value, MidpointRounding.AwayFromZero);
+                }
+            }
+            """;
+
+        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("Decimal"), fixedCode, codeActionIndex: 1);
+    }
+
+    [Fact]
+    public async Task DecimalRoundValueAndDigitsReportsDiagnosticAndAddsToEven()
+    {
+        const string test = """
+            using System;
+
+            class C
+            {
+                decimal M(decimal value)
+                {
+                    return {|#0:decimal.Round(value, 2)|};
+                }
+            }
+            """;
+
+        const string fixedCode = """
+            using System;
+
+            class C
+            {
+                decimal M(decimal value)
+                {
+                    return decimal.Round(value, 2, MidpointRounding.ToEven);
+                }
+            }
+            """;
+
+        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("Decimal"), fixedCode, codeActionIndex: 0);
+    }
+
+    [Fact]
+    public async Task DecimalRoundValueAndDigitsReportsDiagnosticAndAddsAwayFromZero()
+    {
+        const string test = """
+            using System;
+
+            class C
+            {
+                decimal M(decimal value)
+                {
+                    return {|#0:decimal.Round(value, 2)|};
+                }
+            }
+            """;
+
+        const string fixedCode = """
+            using System;
+
+            class C
+            {
+                decimal M(decimal value)
+                {
+                    return decimal.Round(value, 2, MidpointRounding.AwayFromZero);
+                }
+            }
+            """;
+
+        await Verify.VerifyCodeFixAsync(test, Diagnostic().WithLocation(0).WithArguments("Decimal"), fixedCode, codeActionIndex: 1);
+    }
+
+    [Fact]
     public async Task MathFRoundValueReportsDiagnosticAndAddsToEven()
     {
         const string test = """
@@ -384,9 +504,11 @@ public sealed class ExplicitMidpointRoundingAnalyzerTests
                     var awayFromZero = Math.Round(value, 2, MidpointRounding.AwayFromZero);
                     var decimalToEven = Math.Round((decimal)value, MidpointRounding.ToEven);
                     var decimalAwayFromZero = Math.Round((decimal)value, 2, MidpointRounding.AwayFromZero);
+                    var decimalStaticToEven = decimal.Round((decimal)value, MidpointRounding.ToEven);
+                    var decimalStaticAwayFromZero = decimal.Round((decimal)value, 2, MidpointRounding.AwayFromZero);
                     var mathFToEven = MathF.Round((float)value, MidpointRounding.ToEven);
                     var mathFAwayFromZero = MathF.Round((float)value, 2, MidpointRounding.AwayFromZero);
-                    return toEven + awayFromZero + (double)decimalToEven + (double)decimalAwayFromZero + mathFToEven + mathFAwayFromZero;
+                    return toEven + awayFromZero + (double)decimalToEven + (double)decimalAwayFromZero + (double)decimalStaticToEven + (double)decimalStaticAwayFromZero + mathFToEven + mathFAwayFromZero;
                 }
             }
             """;
@@ -429,6 +551,22 @@ public sealed class ExplicitMidpointRoundingAnalyzerTests
             """;
 
         await Verify.VerifyAnalyzerAsync(test, Diagnostic().WithLocation(0).WithArguments("Math"));
+    }
+
+    [Fact]
+    public async Task FullyQualifiedDecimalRoundReportsDiagnostic()
+    {
+        const string test = """
+            class C
+            {
+                decimal M(decimal value)
+                {
+                    return {|#0:System.Decimal.Round(value, 2)|};
+                }
+            }
+            """;
+
+        await Verify.VerifyAnalyzerAsync(test, Diagnostic().WithLocation(0).WithArguments("Decimal"));
     }
 
     private static DiagnosticResult Diagnostic()
