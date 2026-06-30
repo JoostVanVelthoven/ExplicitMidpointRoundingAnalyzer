@@ -18,7 +18,7 @@ public sealed class ExplicitMidpointRoundingAnalyzer : DiagnosticAnalyzer
         "Usage",
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: "Math.Round defaults to MidpointRounding.ToEven; specify the rounding mode explicitly.");
+        description: "Round overloads without a MidpointRounding argument default to MidpointRounding.ToEven; specify the rounding mode explicitly.");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
@@ -31,30 +31,36 @@ public sealed class ExplicitMidpointRoundingAnalyzer : DiagnosticAnalyzer
 
     private static void RegisterCompilationActions(CompilationStartAnalysisContext context)
     {
-        var mathType = context.Compilation.GetTypeByMetadataName("System.Math");
-        var mathFType = context.Compilation.GetTypeByMetadataName("System.MathF");
+        var roundTypes = new[]
+        {
+            context.Compilation.GetTypeByMetadataName("System.Math"),
+            context.Compilation.GetTypeByMetadataName("System.MathF"),
+            context.Compilation.GetTypeByMetadataName("System.Decimal"),
+        }
+        .Where(type => type is not null)
+        .Cast<INamedTypeSymbol>()
+        .ToImmutableArray();
         var midpointRoundingType = context.Compilation.GetTypeByMetadataName("System.MidpointRounding");
 
-        if (midpointRoundingType is null || (mathType is null && mathFType is null))
+        if (midpointRoundingType is null || roundTypes.IsEmpty)
         {
             return;
         }
 
         context.RegisterOperationAction(
-            operationContext => AnalyzeInvocation(operationContext, mathType, mathFType, midpointRoundingType),
+            operationContext => AnalyzeInvocation(operationContext, roundTypes, midpointRoundingType),
             OperationKind.Invocation);
     }
 
     private static void AnalyzeInvocation(
         OperationAnalysisContext context,
-        INamedTypeSymbol? mathType,
-        INamedTypeSymbol? mathFType,
+        ImmutableArray<INamedTypeSymbol> roundTypes,
         INamedTypeSymbol midpointRoundingType)
     {
         var invocation = (IInvocationOperation)context.Operation;
         var method = invocation.TargetMethod;
 
-        if (!IsSystemMathRound(method, mathType, mathFType) || HasMidpointRoundingParameter(method, midpointRoundingType))
+        if (!IsSystemRound(method, roundTypes) || HasMidpointRoundingParameter(method, midpointRoundingType))
         {
             return;
         }
@@ -62,7 +68,7 @@ public sealed class ExplicitMidpointRoundingAnalyzer : DiagnosticAnalyzer
         context.ReportDiagnostic(Diagnostic.Create(Rule, invocation.Syntax.GetLocation(), method.ContainingType.Name));
     }
 
-    private static bool IsSystemMathRound(IMethodSymbol method, INamedTypeSymbol? mathType, INamedTypeSymbol? mathFType)
+    private static bool IsSystemRound(IMethodSymbol method, ImmutableArray<INamedTypeSymbol> roundTypes)
     {
         if (method.Name != "Round")
         {
@@ -70,8 +76,7 @@ public sealed class ExplicitMidpointRoundingAnalyzer : DiagnosticAnalyzer
         }
 
         var containingType = method.ContainingType;
-        return SymbolEqualityComparer.Default.Equals(containingType, mathType)
-            || SymbolEqualityComparer.Default.Equals(containingType, mathFType);
+        return roundTypes.Any(roundType => SymbolEqualityComparer.Default.Equals(containingType, roundType));
     }
 
     private static bool HasMidpointRoundingParameter(IMethodSymbol method, INamedTypeSymbol midpointRoundingType)

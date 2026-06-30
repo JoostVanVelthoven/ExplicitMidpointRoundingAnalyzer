@@ -1,7 +1,8 @@
 # Explicit Midpoint Rounding Analyzer
 
-Roslyn analyzer that reports calls to `System.Math.Round` and `System.MathF.Round`
-when the overload omits an explicit `MidpointRounding` argument.
+Roslyn analyzer that reports calls to `System.Math.Round`, `System.MathF.Round`,
+and `System.Decimal.Round` when the overload omits an explicit
+`MidpointRounding` argument.
 
 `Math.Round` defaults to `MidpointRounding.ToEven`, which can be easy to miss in
 code reviews. This analyzer is intentionally neutral: it only requires the
@@ -43,6 +44,7 @@ var taxAmount = Math.Round(netAmount * taxRate, 2, MidpointRounding.AwayFromZero
 Math.Round(value);
 Math.Round(value, 2);
 MathF.Round(floatValue);
+decimal.Round(decimalValue);
 System.Math.Round(value, 2);
 ```
 
