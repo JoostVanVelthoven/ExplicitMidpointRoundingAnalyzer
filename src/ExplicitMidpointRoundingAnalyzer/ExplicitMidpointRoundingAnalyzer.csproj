@@ -8,6 +8,11 @@
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <PackageId>ExplicitMidpointRoundingAnalyzer</PackageId>
+    <VersionPrefix>2.0</VersionPrefix>
+    <VersionSuffix Condition="'$(VersionSuffix)' == '' and '$(GITHUB_RUN_NUMBER)' != ''">$(GITHUB_RUN_NUMBER)</VersionSuffix>
+    <VersionSuffix Condition="'$(VersionSuffix)' == '' and '$(BUILD_BUILDID)' != ''">$(BUILD_BUILDID)</VersionSuffix>
+    <PackageVersion Condition="'$(PackageVersion)' == '' and '$(VersionSuffix)' == ''">$(VersionPrefix).0</PackageVersion>
+    <PackageVersion Condition="'$(PackageVersion)' == '' and '$(VersionSuffix)' != ''">$(VersionPrefix).$(VersionSuffix)</PackageVersion>
     <Title>Explicit Midpoint Rounding Analyzer</Title>
     <Description>Reports calls to System.Math.Round and System.MathF.Round that omit MidpointRounding.</Description>
     <Authors>ExplicitMidpointRoundingAnalyzer</Authors>

@@ -84,3 +84,8 @@ To create the NuGet package locally:
 ```bash
 dotnet pack src/ExplicitMidpointRoundingAnalyzer/ExplicitMidpointRoundingAnalyzer.csproj -c Release -o artifacts
 ```
+
+The package version is `2.0.0` by default. CI builds automatically append the
+GitHub Actions `GITHUB_RUN_NUMBER` or Azure Pipelines `BUILD_BUILDID` as the
+patch version (for example, `2.0.123`). You can still override the version
+explicitly with `-p:PackageVersion=2.0.123`.
