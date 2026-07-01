@@ -1,8 +1,9 @@
 # Explicit Midpoint Rounding Analyzer
 
 Roslyn analyzer that reports calls to `System.Math.Round`, `System.MathF.Round`,
-and `System.Decimal.Round` when the overload omits an explicit
-`MidpointRounding` argument.
+`System.Decimal.Round`, `System.Half.Round`, `System.Double.Round`, and
+`System.Single.Round`, and generic `System.Numerics.IFloatingPoint<TSelf>.Round`
+when the overload omits an explicit `MidpointRounding` argument.
 
 `Math.Round` defaults to `MidpointRounding.ToEven`, which can be easy to miss in
 code reviews. This analyzer is intentionally neutral: it only requires the
@@ -45,6 +46,10 @@ Math.Round(value);
 Math.Round(value, 2);
 MathF.Round(floatValue);
 decimal.Round(decimalValue);
+Half.Round(halfValue);
+double.Round(doubleValue);
+float.Round(floatValue);
+T.Round(genericValue);
 System.Math.Round(value, 2);
 ```
 
@@ -56,6 +61,10 @@ Calls that already specify a rounding mode are ignored:
 ```csharp
 Math.Round(value, MidpointRounding.ToEven);
 Math.Round(value, 2, MidpointRounding.AwayFromZero);
+Half.Round(halfValue, MidpointRounding.ToEven);
+double.Round(value, MidpointRounding.ToEven);
+float.Round(floatValue, MidpointRounding.AwayFromZero);
+T.Round(genericValue, MidpointRounding.ToEven);
 ```
 
 If the intended policy is banker's rounding, make that explicit too:

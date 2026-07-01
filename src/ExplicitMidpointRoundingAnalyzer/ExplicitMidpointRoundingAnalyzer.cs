@@ -36,6 +36,10 @@ public sealed class ExplicitMidpointRoundingAnalyzer : DiagnosticAnalyzer
             context.Compilation.GetTypeByMetadataName("System.Math"),
             context.Compilation.GetTypeByMetadataName("System.MathF"),
             context.Compilation.GetTypeByMetadataName("System.Decimal"),
+            context.Compilation.GetTypeByMetadataName("System.Half"),
+            context.Compilation.GetTypeByMetadataName("System.Double"),
+            context.Compilation.GetTypeByMetadataName("System.Single"),
+            context.Compilation.GetTypeByMetadataName("System.Numerics.IFloatingPoint`1"),
         }
         .Where(type => type is not null)
         .Cast<INamedTypeSymbol>()
@@ -76,7 +80,9 @@ public sealed class ExplicitMidpointRoundingAnalyzer : DiagnosticAnalyzer
         }
 
         var containingType = method.ContainingType;
-        return roundTypes.Any(roundType => SymbolEqualityComparer.Default.Equals(containingType, roundType));
+        return roundTypes.Any(roundType =>
+            SymbolEqualityComparer.Default.Equals(containingType, roundType) ||
+            SymbolEqualityComparer.Default.Equals(containingType.OriginalDefinition, roundType));
     }
 
     private static bool HasMidpointRoundingParameter(IMethodSymbol method, INamedTypeSymbol midpointRoundingType)

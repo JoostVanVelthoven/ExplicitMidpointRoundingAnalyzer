@@ -14,7 +14,7 @@
     <PackageVersion Condition="'$(PackageVersion)' == '' and '$(VersionSuffix)' == ''">$(VersionPrefix).0</PackageVersion>
     <PackageVersion Condition="'$(PackageVersion)' == '' and '$(VersionSuffix)' != ''">$(VersionPrefix).$(VersionSuffix)</PackageVersion>
     <Title>Explicit Midpoint Rounding Analyzer</Title>
-    <Description>Reports calls to System.Math.Round and System.MathF.Round that omit MidpointRounding.</Description>
+    <Description>Reports Round calls on System.Math, MathF, Decimal, Half, Double, Single, and generic IFloatingPoint that omit MidpointRounding.</Description>
     <Authors>ExplicitMidpointRoundingAnalyzer</Authors>
     <DevelopmentDependency>true</DevelopmentDependency>
     <PackageReadmeFile>README.md</PackageReadmeFile>
